@@ -1,0 +1,30 @@
+<main class="page">
+  <section class="panel">
+    <h1>Angular + gRPC-Web Demo</h1>
+    <p class="subtitle">
+      This page calls the backend <strong>SayHello</strong> RPC through Envoy on
+      <code>http://localhost:8080</code>.
+    </p>
+
+    <label for="name">Name</label>
+    <input
+      id="name"
+      name="name"
+      type="text"
+      [(ngModel)]="name"
+      placeholder="Enter your name"
+    />
+
+    <button type="button" (click)="sendGreeting()" [disabled]="isLoading">
+      {{ isLoading ? 'Calling...' : 'Call SayHello' }}
+    </button>
+
+    @if (response) {
+      <p class="ok">Response: {{ response }}</p>
+    }
+
+    @if (error) {
+      <p class="err">{{ error }}</p>
+    }
+  </section>
+</main>

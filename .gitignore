@@ -14,3 +14,7 @@ yarn-error.log*
 # OS/editor noise
 .DS_Store
 Thumbs.db
+
+# Local grpc-web proxy tools
+infra/tools/
+infra/.runtime/
