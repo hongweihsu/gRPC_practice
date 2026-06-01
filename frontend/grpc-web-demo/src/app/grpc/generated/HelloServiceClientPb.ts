@@ -15,6 +15,8 @@ export class GreeterClient {
   private readonly client: grpcWeb.GrpcWebClientBase;
   private readonly hostname: string;
 
+  static readonly defaultTimeoutMs = 5000;
+
   constructor(hostname: string, options?: grpcWeb.GrpcWebClientBaseOptions) {
     this.hostname = hostname;
     this.client = new grpcWeb.GrpcWebClientBase({
@@ -23,14 +25,27 @@ export class GreeterClient {
     });
   }
 
-  sayHello(request: HelloRequest, metadata?: grpcWeb.Metadata): Promise<HelloReply> {
+  sayHello(
+    request: HelloRequest,
+    metadata?: grpcWeb.Metadata,
+    timeoutMs = GreeterClient.defaultTimeoutMs
+  ): Promise<HelloReply> {
     return new Promise<HelloReply>((resolve, reject) => {
-      this.client.rpcCall(
+      let settled = false;
+
+      const call = this.client.rpcCall(
         `${this.hostname}/hello.Greeter/SayHello`,
         request,
         metadata ?? {},
         methodDescriptorGreeterSayHello,
         (err, response) => {
+          if (settled) {
+            return;
+          }
+
+          settled = true;
+          clearTimeout(timeout);
+
           if (err) {
             reject(err);
             return;
@@ -39,6 +54,16 @@ export class GreeterClient {
           resolve(response);
         }
       );
+
+      const timeout = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        call.cancel();
+        reject(new Error(`Request timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
     });
   }
 }
